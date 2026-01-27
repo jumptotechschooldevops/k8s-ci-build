@@ -5,18 +5,13 @@ on:
     branches:
       - main
 
-env:
-  IMAGE_NAME: ghcr.io/jumptotechschooldevops/k8s-ci-build
-  GITOPS_REPO: jumptotechschooldevops/grade-api-gitops
-  GITOPS_FILE: deployment.yaml
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout CI repo
-      - name: Checkout source code
+      # 1️⃣ Checkout CI repository
+      - name: Checkout CI repo
         uses: actions/checkout@v4
 
       # 2️⃣ Login to GitHub Container Registry
@@ -33,10 +28,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/jumptotechschooldevops/k8s-ci-build:${{ github.sha }}
+          tags: ghcr.io/jumptotechschooldevops/k8s-ci-build:${{ github.sha }}
 
-      # 4️⃣ Checkout GitOps repo
+      # 4️⃣ Checkout GitOps repository
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
         with:
@@ -44,18 +38,18 @@ jobs:
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops
 
-      # 5️⃣ Update image tag in GitOps deployment.yaml
+      # 5️⃣ Replace PLACEHOLDER with commit SHA
       - name: Update image tag in GitOps repo
         run: |
           cd gitops
-          sed -i "s|image: .*|image: ghcr.io/jumptotechschooldevops/k8s-ci-build:${{ github.sha }}|g" deployment.yaml
+          sed -i "s/PLACEHOLDER/${{ github.sha }}/g" deployment.yaml
 
       # 6️⃣ Commit and push GitOps changes
       - name: Commit and push GitOps changes
         run: |
           cd gitops
-          git config user.email "ci@jumptotech.io"
           git config user.name "GitHub Actions CI"
+          git config user.email "ci@jumptotech.dev"
           git add deployment.yaml
           git commit -m "Update image to ${{ github.sha }}"
           git push
