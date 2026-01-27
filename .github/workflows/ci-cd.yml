@@ -38,11 +38,11 @@ jobs:
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops
 
-      # 5️⃣ Replace PLACEHOLDER with commit SHA
+      # 5️⃣ Force-set image tag in GitOps deployment.yaml
       - name: Update image tag in GitOps repo
         run: |
           cd gitops
-          sed -i "s/PLACEHOLDER/${{ github.sha }}/g" deployment.yaml
+          sed -i 's|image:.*|image: ghcr.io/jumptotechschooldevops/k8s-ci-build:${{ github.sha }}|g' deployment.yaml
 
       # 6️⃣ Commit and push GitOps changes
       - name: Commit and push GitOps changes
